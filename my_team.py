@@ -128,22 +128,82 @@ class OffensiveReflexAgent(ReflexCaptureAgent):
   but it is by no means the best or only way to build an offensive agent.
   """
 
+
+
     def get_features(self, game_state, action):
         features = util.Counter()
         successor = self.get_successor(game_state, action)
+        my_state = successor.get_agent_state(self.index)
+        my_pos = my_state.get_position()
+
         food_list = self.get_food(successor).as_list()
-        features['successor_score'] = -len(food_list)  # self.getScore(successor)
+        features['successor_score'] = -len(food_list)
 
-        # Compute distance to the nearest food
+        # Calcular las casillas transitables de nuestra frontera
+        walls = game_state.get_walls()
+        middle = walls.width // 2
 
-        if len(food_list) > 0:  # This should always be True,  but better safe than sorry
-            my_pos = successor.get_agent_state(self.index).get_position()
-            min_distance = min([self.get_maze_distance(my_pos, food) for food in food_list])
-            features['distance_to_food'] = min_distance
+        if game_state.is_on_red_team(self.index):
+            home_x = middle - 1
+        else:
+            home_x = middle
+
+        home_positions = [
+            (home_x, y)
+            for y in range(walls.height)
+            if not walls[home_x][y]
+        ]
+
+        # Regresar a casa cuando llevamos 5 o más comidas
+        if game_state.get_agent_state(self.index).num_carrying >= 5 and my_state.is_pacman:
+            if home_positions:
+                features['distance_to_home'] = min(
+                    self.get_maze_distance(my_pos, home)
+                    for home in home_positions
+                )
+        else:
+            # Seguir buscando comida
+            if food_list:
+                features['distance_to_food'] = min(
+                    self.get_maze_distance(my_pos, food)
+                    for food in food_list
+                )
+
+        # Evitar fantasmas enemigos visibles y peligrosos
+        if my_state.is_pacman:
+            enemies = [
+                successor.get_agent_state(i)
+                for i in self.get_opponents(successor)
+            ]
+
+            dangerous_ghosts = [
+                enemy for enemy in enemies
+                if not enemy.is_pacman
+                and enemy.get_position() is not None
+                and enemy.scared_timer <= 1
+            ]
+
+            if dangerous_ghosts:
+                min_ghost_distance = min(
+                    self.get_maze_distance(my_pos, ghost.get_position())
+                    for ghost in dangerous_ghosts
+                )
+
+                if min_ghost_distance <= 3:
+                    features['ghost_danger'] = 4 - min_ghost_distance
+
         return features
 
+
     def get_weights(self, game_state, action):
-        return {'successor_score': 100, 'distance_to_food': -1}
+        return {
+            'successor_score': 100,
+            'distance_to_food': -1,
+            'distance_to_home': -10,
+            'ghost_danger': -150
+        }
+
+
 
 
 class DefensiveReflexAgent(ReflexCaptureAgent):
