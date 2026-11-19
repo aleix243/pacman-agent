@@ -1,3 +1,9 @@
 venv/
 __pycache__/
 *.pyc
+
+# Archivos locales y experimentales
+experimentos/
+venv/
+__pycache__/
+*.pyc
