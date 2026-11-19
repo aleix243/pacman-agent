@@ -233,11 +233,47 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
             dists = [self.get_maze_distance(my_pos, a.get_position()) for a in invaders]
             features['invader_distance'] = min(dists)
 
+        else:
+            # Patrullar cerca de la frontera cuando no vemos invasores
+            walls = game_state.get_walls()
+            middle = walls.width // 2
+
+            if game_state.is_on_red_team(self.index):
+                home_x = middle - 1
+            else:
+                home_x = middle
+
+            border_positions = [
+                (home_x, y)
+                for y in range(walls.height)
+                if not walls[home_x][y]
+            ]
+
+            if border_positions:
+                # Elegir un punto central accesible de la frontera
+                target = min(
+                    border_positions,
+                    key=lambda pos: abs(pos[1] - walls.height // 2)
+                )
+
+                features['distance_to_patrol'] = self.get_maze_distance(
+                    my_pos, target
+                )
+
         if action == Directions.STOP: features['stop'] = 1
         rev = Directions.REVERSE[game_state.get_agent_state(self.index).configuration.direction]
         if action == rev: features['reverse'] = 1
 
         return features
 
+
     def get_weights(self, game_state, action):
-        return {'num_invaders': -1000, 'on_defense': 100, 'invader_distance': -10, 'stop': -100, 'reverse': -2}
+        return {
+            'num_invaders': -1000,
+            'on_defense': 100,
+            'invader_distance': -10,
+            'distance_to_patrol': -5,
+            'stop': -100,
+            'reverse': -2
+        }
+
