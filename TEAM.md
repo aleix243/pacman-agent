@@ -1,8 +1,8 @@
 # Team Information
 
-**Course:** _[fill your course code and name]_
+**Course:** 24304(COMPROVAR NO SE) - Artificial Intelligence
 
-**Semester:** Semester 2, 2020
+**Semester:** Semester 1, 2026
 
 **Instructor:** _[name of your instructor]_
 
@@ -10,9 +10,9 @@
 
 **Team members:**
 
-* Student 1's Student number - Full Name - Student email - Student Github id
+* 251283 - Aleix Alemany Roma - aleix.alemany01@estudiant.upf.edu - Student Github id
 * Student 2's Student number - Full Name - Student email - Student Github id
-* Student 3's Student number - Full Name - Student email - Student Github id
+
 
 Replace the lines above with the correct details of members. Delete or add lines as needed.
 
